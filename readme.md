@@ -1,5 +1,5 @@
-
 [![Build Status](https://travis-ci.org/palantir/junit-resource-poller.svg?branch=develop)](https://travis-ci.org/palantir/junit-resource-poller.svg?branch=develop)
+[ ![Download](https://api.bintray.com/packages/palantir/releases/junit-resource-poller/images/download.svg) ](https://bintray.com/palantir/releases/junit-resource-poller/_latestVersion)
 
 JUnit Resource Poller
 =====================
