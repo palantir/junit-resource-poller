@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableList;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 import java.io.IOException;
@@ -43,9 +42,7 @@ public final class HttpPollingResourceTest {
 
     @Before
     public void before() {
-        poller = new HttpPollingResource(
-                Optional.<SSLSocketFactory>absent(), ImmutableList.of("http://localhost:" + server.getPort()),
-                500, 100);
+        poller = HttpPollingResource.of(Optional.<SSLSocketFactory>absent(), "http://localhost:" + server.getPort(), 5);
     }
 
 
@@ -65,5 +62,6 @@ public final class HttpPollingResourceTest {
         server.enqueue(new MockResponse().setResponseCode(200));
         poller.before();
         assertTrue(stopwatch.elapsed(TimeUnit.MILLISECONDS) > 200);
+        assertTrue(stopwatch.elapsed(TimeUnit.MILLISECONDS) < 500);
     }
 }

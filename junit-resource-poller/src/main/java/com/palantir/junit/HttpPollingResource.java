@@ -29,7 +29,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLSocketFactory;
 import org.junit.rules.ExternalResource;
 
@@ -40,25 +39,25 @@ public final class HttpPollingResource extends ExternalResource implements Polla
 
     private final OkHttpClient client;
     private final ImmutableList<Request> pollRequests;
-    private final long timeoutMillis;
+    private final int numAttempts;
     private final long intervalMillis;
 
     /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
     public static HttpPollingResource of(
-            Optional<SSLSocketFactory> socketFactory, String pollUrl, long timeout, TimeUnit timeUnit) {
-        return new HttpPollingResource(socketFactory, ImmutableList.of(pollUrl), timeUnit.toMillis(timeout), 100);
+            Optional<SSLSocketFactory> socketFactory, String pollUrl, int numAttempts) {
+        return new HttpPollingResource(socketFactory, ImmutableList.of(pollUrl), numAttempts, 100);
     }
 
     /**
-     * Like {@link HttpPollingResource#of(Optional, String, long, TimeUnit)}, but waits for all of the given URLs.
+     * Like {@link HttpPollingResource#of(Optional, String, int)}, but waits for all of the given URLs.
      */
     public static HttpPollingResource of(
-            Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, long timeout, TimeUnit timeUnit) {
-        return new HttpPollingResource(socketFactory, pollUrls, timeUnit.toMillis(timeout), 100);
+            Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, int numAttemts) {
+        return new HttpPollingResource(socketFactory, pollUrls, numAttemts, 100);
     }
 
     public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
-            long timeoutMillis, long intervalMillis) {
+            int numAttempts, long intervalMillis) {
         this.client = new OkHttpClient();
         if (socketFactory.isPresent()) {
             this.client.setSslSocketFactory(socketFactory.get());
@@ -72,7 +71,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
             throw Throwables.propagate(e);
         }
         this.pollRequests = urls.build();
-        this.timeoutMillis = timeoutMillis;
+        this.numAttempts = numAttempts;
         this.intervalMillis = intervalMillis;
     }
 
@@ -96,10 +95,10 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     @Override
     protected void before() {
         try {
-            ResourcePoller.poll(timeoutMillis, intervalMillis, this);
+            ResourcePoller.poll(numAttempts, intervalMillis, this);
         } catch (Exception e) {
             throw new IllegalStateException(String.format("HTTP services was not ready within %d milliseconds: %s",
-                    timeoutMillis, urlsFromRequests(pollRequests)), e);
+                    numAttempts * intervalMillis, urlsFromRequests(pollRequests)), e);
         }
     }
 

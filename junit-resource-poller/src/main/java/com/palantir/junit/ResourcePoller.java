@@ -17,24 +17,38 @@
 package com.palantir.junit;
 
 import com.google.common.base.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
-public abstract class ResourcePoller {
+public final class ResourcePoller {
+
+    private ResourcePoller() {}
 
     /**
-     * Returns when the given target resource is {@link PollableResource#isReady()} after {@code timeoutMillis}
-     * milliseconds, or throws the last error returned from polling otherwise.
+     * Calls {@link PollableResource#isReady()} at most {@code numAttempts} times and returns once the given target
+     * resource returns {@link Optional#absent()} to indicate that it is ready. Throws the last exception returned by
+     * {@link PollableResource#isReady()} otherwise.
      */
-    public static void poll(long timeoutMillis, long intervalMillis, PollableResource target) throws Exception {
-        long startTime = System.currentTimeMillis();
-        Optional<Exception> lastException;
-        do {
-            lastException = target.isReady();
-            Thread.sleep(intervalMillis);
-        } while (lastException.isPresent() && System.currentTimeMillis() - startTime < timeoutMillis);
+    public static void poll(int numAttemts, long intervalMillis, final PollableResource target) throws Exception {
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        Callable<Optional<Exception>> isReadyCallable = new Callable<Optional<Exception>>() {
+            @Override
+            public Optional<Exception> call() throws Exception {
+                return target.isReady();
+            }
+        };
 
-        if (lastException.isPresent()) {
-            throw lastException.get();
+        Optional<Exception> lastException = isReadyCallable.call();
+        for (int i = 0; i < numAttemts; ++i) {
+            lastException = scheduler.schedule(isReadyCallable, intervalMillis, TimeUnit.MILLISECONDS).get();
+            if (!lastException.isPresent()) {
+                return;
+            }
         }
+
+        throw lastException.get();
     }
 }
