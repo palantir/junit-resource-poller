@@ -1,0 +1,8 @@
+sourceCompatibility = '1.7'
+
+dependencies {
+    compile "com.google.guava:guava:${guavaVersion}"
+    compile "com.squareup.okhttp:okhttp:${okhttpVersion}"
+    compile "junit:junit:${junitVersion}"
+    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+}
