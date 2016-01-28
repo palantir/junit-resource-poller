@@ -21,9 +21,9 @@ bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
     pkg {
-        repo = 'maven'
-        name = 'syntactic-paths'
-        userOrg = 'uschi2000'
+        repo = 'releases'
+        name = 'junit-resource-poller'
+        userOrg = 'palantir'
         licenses = ['Apache-2.0']
         publications = ['bintray']
     }
@@ -36,4 +36,3 @@ bintrayUpload.onlyIf {
 bintrayUpload.dependsOn { generatePomFileForBintrayPublication }
 bintrayUpload.dependsOn { sourceJar }
 bintrayUpload.dependsOn { build }
-
