@@ -32,7 +32,7 @@ public final class ResourcePoller {
      * resource returns {@link Optional#absent()} to indicate that it is ready. Throws the last exception returned by
      * {@link PollableResource#isReady()} otherwise.
      */
-    public static void poll(int numAttemts, long intervalMillis, final PollableResource target) throws Exception {
+    public static void poll(int numAttempts, long intervalMillis, final PollableResource target) throws Exception {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         Callable<Optional<Exception>> isReadyCallable = new Callable<Optional<Exception>>() {
             @Override
@@ -42,7 +42,7 @@ public final class ResourcePoller {
         };
 
         Optional<Exception> lastException = isReadyCallable.call();
-        for (int i = 0; i < numAttemts; ++i) {
+        for (int i = 0; i < numAttempts; ++i) {
             lastException = scheduler.schedule(isReadyCallable, intervalMillis, TimeUnit.MILLISECONDS).get();
             if (!lastException.isPresent()) {
                 return;
