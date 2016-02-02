@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLSocketFactory;
 import org.junit.rules.ExternalResource;
 
@@ -36,6 +37,9 @@ import org.junit.rules.ExternalResource;
  * A JUnit resource representing a list of remote services that can be polled for availability through a URL.
  */
 public final class HttpPollingResource extends ExternalResource implements PollableResource {
+
+    private static final int CONNECTION_TIMEOUT_MILLIS = 500;
+    private static final int READ_TIMEOUT_MILLIS = 500;
 
     private final OkHttpClient client;
     private final ImmutableList<Request> pollRequests;
@@ -45,7 +49,8 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> socketFactory, String pollUrl, int numAttempts) {
-        return new HttpPollingResource(socketFactory, ImmutableList.of(pollUrl), numAttempts, 100);
+        return new HttpPollingResource(socketFactory, ImmutableList.of(pollUrl), numAttempts, 100,
+                CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
     }
 
     /**
@@ -53,12 +58,15 @@ public final class HttpPollingResource extends ExternalResource implements Polla
      */
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, int numAttemts) {
-        return new HttpPollingResource(socketFactory, pollUrls, numAttemts, 100);
+        return new HttpPollingResource(socketFactory, pollUrls, numAttemts, 100,
+                CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
     }
 
     public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
-            int numAttempts, long intervalMillis) {
+            int numAttempts, long intervalMillis, int connectionTimeoutMillis, int readTimeoutMillis) {
         this.client = new OkHttpClient();
+        client.setConnectTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
+        client.setReadTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
         if (socketFactory.isPresent()) {
             this.client.setSslSocketFactory(socketFactory.get());
         }

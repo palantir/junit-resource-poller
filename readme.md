@@ -24,11 +24,11 @@ Simple Gradle setup:
 
 In a Java JUnit test:
 
-    @ClassRule  // Waits at most 60 seconds for all services to be available
+    @ClassRule  // Tries reaching the given services 100 times with a 100ms delay (plus connection timeout)
     public static final HttpPollingResource SERVICE_POLLER = HttpPollingResource.of(
             Optional.absent(),  // no SSL required
             ImmutableList.of("http://my.host/my/service", "http://another.service"),
-            60, TimeUnit.SECONDS);
+            100);
 
 License
 -------
