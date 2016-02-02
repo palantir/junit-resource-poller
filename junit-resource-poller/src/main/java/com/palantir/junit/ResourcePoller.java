@@ -41,7 +41,7 @@ public final class ResourcePoller {
             }
         };
 
-        Optional<Exception> lastException = isReadyCallable.call();
+        Optional<Exception> lastException = Optional.absent();
         for (int i = 0; i < numAttempts; ++i) {
             lastException = scheduler.schedule(isReadyCallable, intervalMillis, TimeUnit.MILLISECONDS).get();
             if (!lastException.isPresent()) {
@@ -49,6 +49,6 @@ public final class ResourcePoller {
             }
         }
 
-        throw lastException.get();
+        throw lastException.or(new IllegalStateException("Internal error (numAttempts == 0?)"));
     }
 }

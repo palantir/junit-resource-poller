@@ -16,10 +16,14 @@
 
 package com.palantir.junit;
 
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThan;
+import static org.junit.Assert.assertThat;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import com.squareup.okhttp.mockwebserver.MockResponse;
 import com.squareup.okhttp.mockwebserver.MockWebServer;
 import java.io.IOException;
@@ -61,7 +65,35 @@ public final class HttpPollingResourceTest {
         server.enqueue(new MockResponse().setResponseCode(500));
         server.enqueue(new MockResponse().setResponseCode(200));
         poller.before();
-        assertTrue(stopwatch.elapsed(TimeUnit.MILLISECONDS) > 200);
-        assertTrue(stopwatch.elapsed(TimeUnit.MILLISECONDS) < 500);
+        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), greaterThan(200L));
+        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), lessThan(500L));
+    }
+
+    @Test
+    public void test_connectionsTimeOutQuickly() throws IOException, InterruptedException {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+            poller.before();
+        } catch (IllegalStateException e) { /* expected */ }
+
+        assertThat(server.getRequestCount(), is(5));
+        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), lessThan(6 * 500L + 500));
+    }
+
+    @Test
+    public void test_pollsAreServices() throws IOException, InterruptedException {
+        MockWebServer server2 = new MockWebServer();
+        server2.start();
+        HttpPollingResource doublePoller = HttpPollingResource.of(Optional.<SSLSocketFactory>absent(),
+                ImmutableList.of("http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()), 2);
+
+        server.enqueue(new MockResponse().setResponseCode(500));
+        // server2 won't get called in the first iteration
+        server.enqueue(new MockResponse().setResponseCode(200));
+        server2.enqueue(new MockResponse().setResponseCode(200));
+
+        doublePoller.before();
+        assertThat(server.getRequestCount(), is(2));
+        assertThat(server2.getRequestCount(), is(1));
     }
 }
