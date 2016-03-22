@@ -88,6 +88,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         for (Request request : pollRequests) {
             try {
                 Response response = client.newCall(request).execute();
+                response.body().close();
                 if (!response.isSuccessful()) {
                     return Optional.of((Exception) new RuntimeException(String.format(
                             "Received non-success error code %s from resource %s", response.code(), request.url())));
