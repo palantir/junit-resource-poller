@@ -20,6 +20,7 @@ publishing {
 bintray {
     user = System.getenv('BINTRAY_USER')
     key = System.getenv('BINTRAY_KEY')
+    publish = true
     pkg {
         repo = 'releases'
         name = 'junit-resource-poller'
