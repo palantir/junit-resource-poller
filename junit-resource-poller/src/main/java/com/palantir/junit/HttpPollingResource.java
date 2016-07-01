@@ -21,9 +21,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,6 +28,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLSocketFactory;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -64,12 +65,13 @@ public final class HttpPollingResource extends ExternalResource implements Polla
 
     public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
             int numAttempts, long intervalMillis, int connectionTimeoutMillis, int readTimeoutMillis) {
-        this.client = new OkHttpClient();
-        client.setConnectTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
-        client.setReadTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        clientBuilder.connectTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
+        clientBuilder.readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
         if (socketFactory.isPresent()) {
-            this.client.setSslSocketFactory(socketFactory.get());
+            clientBuilder.sslSocketFactory(socketFactory.get());
         }
+        this.client = clientBuilder.build();
         ImmutableList.Builder<Request> urls = ImmutableList.builder();
         try {
             for (String url : pollRequests) {
@@ -111,10 +113,10 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         }
     }
 
-    private static List<URL> urlsFromRequests(ImmutableList<Request> pollRequests) {
-        return Lists.transform(pollRequests, new Function<Request, URL>() {
+    private static List<HttpUrl> urlsFromRequests(ImmutableList<Request> pollRequests) {
+        return Lists.transform(pollRequests, new Function<Request, HttpUrl>() {
             @Override
-            public URL apply(Request input) {
+            public HttpUrl apply(Request input) {
                 return input.url();
             }
         });
