@@ -68,12 +68,12 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         socketFactory.ifPresent(clientBuilder::sslSocketFactory);
         this.client = clientBuilder.build();
         this.pollRequests = pollRequests.stream().map(url -> {
-                try {
-                    return new Request.Builder().url(new URL(url)).build();
-                } catch (MalformedURLException e) {
-                    throw new RuntimeException(e);
-                }
-            }).collect(Collectors.toList());
+            try {
+                return new Request.Builder().url(new URL(url)).build();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toList());
         this.numAttempts = numAttempts;
         this.intervalMillis = intervalMillis;
     }

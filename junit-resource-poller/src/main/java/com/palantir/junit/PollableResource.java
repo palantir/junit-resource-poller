@@ -20,8 +20,8 @@ import java.util.Optional;
 
 public interface PollableResource {
     /**
-     * Returns {@link Optional#empty()} iff the the resource is available, or an exception explaining why the resource is
-     * not considered ready else.
+     * Returns {@link Optional#empty()} iff the the resource is available, or an exception explaining
+     * why the resource is not considered ready else.
      */
     Optional<Exception> isReady();
 }

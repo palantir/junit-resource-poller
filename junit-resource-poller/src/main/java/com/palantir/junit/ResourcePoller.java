@@ -41,6 +41,6 @@ public final class ResourcePoller {
             }
         }
 
-        lastException.orElseThrow(() -> new IllegalStateException("Internal error (numAttempts == 0?)"));
+        throw lastException.orElseGet(() -> new IllegalStateException("Internal error (numAttempts == 0?)"));
     }
 }
