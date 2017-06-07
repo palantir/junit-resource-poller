@@ -21,12 +21,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import javax.net.ssl.SSLSocketFactory;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Before;
@@ -46,7 +45,7 @@ public final class HttpPollingResourceTest {
 
     @Before
     public void before() {
-        poller = HttpPollingResource.of(Optional.<SSLSocketFactory>absent(), "http://localhost:" + server.getPort(), 5);
+        poller = HttpPollingResource.of(Optional.empty(), "http://localhost:" + server.getPort(), 5);
     }
 
 
@@ -84,7 +83,7 @@ public final class HttpPollingResourceTest {
     public void test_pollsAreServices() throws IOException, InterruptedException {
         MockWebServer server2 = new MockWebServer();
         server2.start();
-        HttpPollingResource doublePoller = HttpPollingResource.of(Optional.<SSLSocketFactory>absent(),
+        HttpPollingResource doublePoller = HttpPollingResource.of(Optional.empty(),
                 ImmutableList.of("http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()), 2);
 
         server.enqueue(new MockResponse().setResponseCode(500));
