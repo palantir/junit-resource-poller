@@ -16,19 +16,16 @@
 
 package com.palantir.junit;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.net.ssl.SSLSocketFactory;
-import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -43,14 +40,14 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     private static final int READ_TIMEOUT_MILLIS = 500;
 
     private final OkHttpClient client;
-    private final ImmutableList<Request> pollRequests;
+    private final List<Request> pollRequests;
     private final int numAttempts;
     private final long intervalMillis;
 
     /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> socketFactory, String pollUrl, int numAttempts) {
-        return new HttpPollingResource(socketFactory, ImmutableList.of(pollUrl), numAttempts, 100,
+        return new HttpPollingResource(socketFactory, Collections.singletonList(pollUrl), numAttempts, 100,
                 CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
     }
 
@@ -68,19 +65,15 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         clientBuilder.connectTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
-        if (socketFactory.isPresent()) {
-            clientBuilder.sslSocketFactory(socketFactory.get());
-        }
+        socketFactory.ifPresent(clientBuilder::sslSocketFactory);
         this.client = clientBuilder.build();
-        ImmutableList.Builder<Request> urls = ImmutableList.builder();
-        try {
-            for (String url : pollRequests) {
-                urls.add(new Request.Builder().url(new URL(url)).build());
+        this.pollRequests = pollRequests.stream().map(url -> {
+            try {
+                return new Request.Builder().url(new URL(url)).build();
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
             }
-        } catch (MalformedURLException e) {
-            throw Throwables.propagate(e);
-        }
-        this.pollRequests = urls.build();
+        }).collect(Collectors.toList());
         this.numAttempts = numAttempts;
         this.intervalMillis = intervalMillis;
     }
@@ -92,15 +85,15 @@ public final class HttpPollingResource extends ExternalResource implements Polla
                 Response response = client.newCall(request).execute();
                 response.body().close();
                 if (!response.isSuccessful()) {
-                    return Optional.of((Exception) new RuntimeException(String.format(
+                    return Optional.of(new RuntimeException(String.format(
                             "Received non-success error code %s from resource %s", response.code(), request.url())));
                 }
             } catch (IOException e) {
-                return Optional.of((Exception) new RuntimeException(
+                return Optional.of(new RuntimeException(
                         "HTTP connection error for resource " + request.url(), e));
             }
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override
@@ -109,16 +102,9 @@ public final class HttpPollingResource extends ExternalResource implements Polla
             ResourcePoller.poll(numAttempts, intervalMillis, this);
         } catch (Exception e) {
             throw new IllegalStateException(String.format("HTTP services was not ready within %d milliseconds: %s",
-                    numAttempts * intervalMillis, urlsFromRequests(pollRequests)), e);
+                    numAttempts * intervalMillis,
+                    pollRequests.stream().map(Request::url).collect(Collectors.toList())), e);
         }
     }
 
-    private static List<HttpUrl> urlsFromRequests(ImmutableList<Request> pollRequests) {
-        return Lists.transform(pollRequests, new Function<Request, HttpUrl>() {
-            @Override
-            public HttpUrl apply(Request input) {
-                return input.url();
-            }
-        });
-    }
 }

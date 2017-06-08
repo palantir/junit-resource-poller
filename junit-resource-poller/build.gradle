@@ -1,13 +1,11 @@
-sourceCompatibility = '1.7'
-
 apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
-    compile "com.google.guava:guava:${guavaVersion}"
     compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
     compile "junit:junit:${junitVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
 
+    testCompile "com.google.guava:guava:${guavaVersion}"
     testCompile "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
 }

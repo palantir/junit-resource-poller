@@ -16,12 +16,10 @@
 
 package com.palantir.junit;
 
-import com.google.common.base.Optional;
-import java.util.concurrent.Callable;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 
 public final class ResourcePoller {
 
@@ -29,26 +27,20 @@ public final class ResourcePoller {
 
     /**
      * Calls {@link PollableResource#isReady()} at most {@code numAttempts} times and returns once the given target
-     * resource returns {@link Optional#absent()} to indicate that it is ready. Throws the last exception returned by
+     * resource returns {@link Optional#empty()} to indicate that it is ready. Throws the last exception returned by
      * {@link PollableResource#isReady()} otherwise.
      */
     public static void poll(int numAttempts, long intervalMillis, final PollableResource target) throws Exception {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        Callable<Optional<Exception>> isReadyCallable = new Callable<Optional<Exception>>() {
-            @Override
-            public Optional<Exception> call() throws Exception {
-                return target.isReady();
-            }
-        };
 
-        Optional<Exception> lastException = Optional.absent();
+        Optional<Exception> lastException = Optional.empty();
         for (int i = 0; i < numAttempts; ++i) {
-            lastException = scheduler.schedule(isReadyCallable, intervalMillis, TimeUnit.MILLISECONDS).get();
+            lastException = scheduler.schedule(target::isReady, intervalMillis, TimeUnit.MILLISECONDS).get();
             if (!lastException.isPresent()) {
                 return;
             }
         }
 
-        throw lastException.or(new IllegalStateException("Internal error (numAttempts == 0?)"));
+        throw lastException.orElseGet(() -> new IllegalStateException("Internal error (numAttempts == 0?)"));
     }
 }
