@@ -55,8 +55,8 @@ public final class HttpPollingResource extends ExternalResource implements Polla
      * Like {@link HttpPollingResource#of(Optional, String, int)}, but waits for all of the given URLs.
      */
     public static HttpPollingResource of(
-            Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, int numAttemts) {
-        return new HttpPollingResource(socketFactory, pollUrls, numAttemts, 100,
+            Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, int numAttempts) {
+        return new HttpPollingResource(socketFactory, pollUrls, numAttempts, 100,
                 CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
     }
 
