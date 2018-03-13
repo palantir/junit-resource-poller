@@ -8,4 +8,5 @@ dependencies {
     testCompile "com.google.guava:guava:${guavaVersion}"
     testCompile "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+    testCompile "org.mockito:mockito-core:${mockitoVersion}"
 }
