@@ -29,7 +29,7 @@ import org.junit.rules.ExternalResource;
  */
 public final class FailureCachingHttpPollingResource extends ExternalResource {
     private final HttpPollingResource poller;
-    private AtomicReference<Throwable> maybeError = new AtomicReference<>();
+    private final AtomicReference<Throwable> maybeError = new AtomicReference<>();
 
     public FailureCachingHttpPollingResource(HttpPollingResource poller) {
         this.poller = poller;
@@ -42,8 +42,9 @@ public final class FailureCachingHttpPollingResource extends ExternalResource {
             try {
                 poller.before();
             } catch (Throwable e) {
-                // we don't care which error of multiple parallel invocations is registered, so this is safe
-                maybeError.lazySet(e);
+                // we don't care which error of multiple parallel invocations is registered,
+                // so we don't need to compare-and-set
+                maybeError.set(e);
                 throw e;
             }
         } else {
