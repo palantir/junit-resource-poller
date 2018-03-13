@@ -19,8 +19,6 @@ package com.palantir.junit;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,8 +34,9 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.stubbing.Answer;
 
-public class FailureCachingHttpPollingResourceTest {
+public final class FailureCachingHttpPollingResourceTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
     @Mock
@@ -98,15 +97,35 @@ public class FailureCachingHttpPollingResourceTest {
 
         IllegalStateException delegateException = new IllegalStateException();
 
+        Answer<Void> failingAnswer = (inv) -> {
+            delegateEntries.await();
+            failingDelegate.await();
+            throw delegateException;
+        };
+
+        Answer<Void> successfulAnswer = (inv) -> {
+            delegateEntries.await();
+            successfulDelegate.await();
+            return null;
+        };
+
         /* first invocation fails*/
-        Mockito.doAnswer((inv) -> { delegateEntries.await(); failingDelegate.await(); throw delegateException; })
-                // second invocation succeeds
-                .doAnswer((inv) -> { delegateEntries.await(); successfulDelegate.await(); return null; })
+        Mockito.doAnswer(failingAnswer)
+                .doAnswer(successfulAnswer)
                 .when(delegate).before();
 
         // run two parallel befores
-        new Thread(() -> { try { resource.before(); } catch (IllegalStateException e) { /* expected */ }  }).start();
-        new Thread(() -> { try { resource.before(); } catch (IllegalStateException e) { /* expected */ }  }).start();
+        new Thread(() -> {
+            try {
+                resource.before();
+            } catch (IllegalStateException e) { /* expected */ }
+        }).start();
+
+        new Thread(() -> {
+            try {
+                resource.before();
+            } catch (IllegalStateException e) { /* expected */ }
+        }).start();
 
         // wait up to 100 ms until both invocations entered the delegate
         delegateEntries.await(100, TimeUnit.MILLISECONDS);
