@@ -19,6 +19,7 @@ package com.palantir.junit;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -72,6 +73,7 @@ public final class FailureCachingHttpPollingResourceTest {
 
         try {
             resource.before();
+            fail();
         } catch (IllegalStateException e) {
             assertThat(e, is(equalTo(delegateException)));
         }
@@ -79,6 +81,7 @@ public final class FailureCachingHttpPollingResourceTest {
         // but resource should remember the failure
         try {
             resource.before();
+            fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), is(equalTo("Failing due to previous error")));
             assertThat(e.getCause(), is(equalTo(delegateException)));
