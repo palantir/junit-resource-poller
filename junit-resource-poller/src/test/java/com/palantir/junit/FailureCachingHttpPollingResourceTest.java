@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Palantir Technologies, Inc. All rights reserved.
+ * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,13 +97,13 @@ public final class FailureCachingHttpPollingResourceTest {
 
         IllegalStateException delegateException = new IllegalStateException();
 
-        Answer<Void> failingAnswer = (inv) -> {
+        Answer<Void> failingAnswer = inv -> {
             delegateEntries.await();
             failingDelegate.await();
             throw delegateException;
         };
 
-        Answer<Void> successfulAnswer = (inv) -> {
+        Answer<Void> successfulAnswer = inv -> {
             delegateEntries.await();
             successfulDelegate.await();
             return null;
