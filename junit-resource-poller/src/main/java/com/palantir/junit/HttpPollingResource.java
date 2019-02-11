@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -44,28 +45,80 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     private final int numAttempts;
     private final long intervalMillis;
 
-    /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
+    /**
+     * Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds.
+     */
+    public static HttpPollingResource of(
+            Optional<SSLSocketFactory> socketFactory,
+            Optional<X509TrustManager> trustManager,
+            String pollUrl,
+            int numAttempts) {
+        return new HttpPollingResource(
+                socketFactory,
+                trustManager,
+                Collections.singletonList(pollUrl),
+                numAttempts,
+                100,
+                CONNECTION_TIMEOUT_MILLIS,
+                READ_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds.
+     *
+     * @deprecated for java 9+ compatibility use {{@link #of(Optional, Optional, String, int)}}.
+     */
+    @Deprecated
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> socketFactory, String pollUrl, int numAttempts) {
-        return new HttpPollingResource(socketFactory, Collections.singletonList(pollUrl), numAttempts, 100,
-                CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
+        return of(socketFactory, Optional.empty(), pollUrl, numAttempts);
+    }
+
+    /**
+     * Like {@link HttpPollingResource#of(Optional, Optional, String, int)}, but waits for all of the given URLs.
+     */
+    public static HttpPollingResource of(
+            Optional<SSLSocketFactory> socketFactory,
+            Optional<X509TrustManager> trustManager,
+            Collection<String> pollUrls,
+            int numAttempts) {
+        return new HttpPollingResource(
+                socketFactory,
+                trustManager,
+                pollUrls,
+                numAttempts,
+                100,
+                CONNECTION_TIMEOUT_MILLIS,
+                READ_TIMEOUT_MILLIS);
     }
 
     /**
      * Like {@link HttpPollingResource#of(Optional, String, int)}, but waits for all of the given URLs.
+     *
+     * @deprecated for java 9+ compatibility use {{@link #of(Optional, Optional, Collection, int)}}.
      */
+    @Deprecated
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, int numAttempts) {
-        return new HttpPollingResource(socketFactory, pollUrls, numAttempts, 100,
-                CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
+        return of(socketFactory, Optional.empty(), pollUrls, numAttempts);
     }
 
-    public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
-            int numAttempts, long intervalMillis, int connectionTimeoutMillis, int readTimeoutMillis) {
+    public HttpPollingResource(
+            Optional<SSLSocketFactory> socketFactory,
+            Optional<X509TrustManager> trustManager,
+            Collection<String> pollRequests,
+            int numAttempts,
+            long intervalMillis,
+            int connectionTimeoutMillis,
+            int readTimeoutMillis) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         clientBuilder.connectTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
-        socketFactory.ifPresent(clientBuilder::sslSocketFactory);
+        if (socketFactory.isPresent() && trustManager.isPresent()) {
+            clientBuilder.sslSocketFactory(socketFactory.get(), trustManager.get());
+        } else if (socketFactory.isPresent()) {
+            socketFactory.ifPresent(clientBuilder::sslSocketFactory);
+        }
         this.client = clientBuilder.build();
         this.pollRequests = pollRequests.stream().map(url -> {
             try {
@@ -81,9 +134,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     @Override
     public Optional<Exception> isReady() {
         for (Request request : pollRequests) {
-            try {
-                Response response = client.newCall(request).execute();
-                response.body().close();
+            try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     return Optional.of(new RuntimeException(String.format(
                             "Received non-success error code %s from resource %s", response.code(), request.url())));

@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -45,7 +46,7 @@ public final class HttpPollingResourceTest {
 
     @Before
     public void before() {
-        poller = HttpPollingResource.of(Optional.empty(), "http://localhost:" + server.getPort(), 5);
+        poller = HttpPollingResource.of(Optional.empty(), Optional.empty(), "http://localhost:" + server.getPort(), 5);
     }
 
 
@@ -58,7 +59,7 @@ public final class HttpPollingResourceTest {
     }
 
     @Test
-    public void test_succeedsIfResourceBecomesAvailableInTime() throws IOException, InterruptedException {
+    public void test_succeedsIfResourceBecomesAvailableInTime() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         server.enqueue(new MockResponse().setResponseCode(500));
         server.enqueue(new MockResponse().setResponseCode(500));
@@ -69,10 +70,11 @@ public final class HttpPollingResourceTest {
     }
 
     @Test
-    public void test_connectionsTimeOutQuickly() throws IOException, InterruptedException {
+    public void test_connectionsTimeOutQuickly() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
             poller.before();
+            fail();
         } catch (IllegalStateException e) { /* expected */ }
 
         assertThat(server.getRequestCount(), is(5));
@@ -80,11 +82,14 @@ public final class HttpPollingResourceTest {
     }
 
     @Test
-    public void test_pollsAreServices() throws IOException, InterruptedException {
+    public void test_pollsAreServices() throws IOException {
         MockWebServer server2 = new MockWebServer();
         server2.start();
-        HttpPollingResource doublePoller = HttpPollingResource.of(Optional.empty(),
-                ImmutableList.of("http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()), 2);
+        HttpPollingResource doublePoller = HttpPollingResource.of(
+                Optional.empty(),
+                Optional.empty(),
+                ImmutableList.of("http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()),
+                2);
 
         server.enqueue(new MockResponse().setResponseCode(500));
         // server2 won't get called in the first iteration

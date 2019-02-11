@@ -31,11 +31,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+@RunWith(MockitoJUnitRunner.class)
 public final class FailureCachingHttpPollingResourceTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -46,7 +48,6 @@ public final class FailureCachingHttpPollingResourceTest {
 
     @Before
     public void before() {
-        MockitoAnnotations.initMocks(this);
         resource = new FailureCachingHttpPollingResource(delegate);
     }
 
