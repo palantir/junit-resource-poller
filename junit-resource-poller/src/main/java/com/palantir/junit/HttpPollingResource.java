@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -44,28 +45,91 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     private final int numAttempts;
     private final long intervalMillis;
 
+    public static final class SslParameters {
+        private final SSLSocketFactory sslSocketFactory;
+        private final Optional<X509TrustManager> x509TrustManager;
+
+        private SslParameters(SSLSocketFactory sslSocketFactory, Optional<X509TrustManager> x509TrustManager) {
+            this.sslSocketFactory = sslSocketFactory;
+            this.x509TrustManager = x509TrustManager;
+        }
+
+        private static SslParameters of(SSLSocketFactory sslSocketFactory) {
+            return new SslParameters(sslSocketFactory, Optional.empty());
+        }
+
+        public static SslParameters of(SSLSocketFactory socketFactory, X509TrustManager x509TrustManager) {
+            return new SslParameters(socketFactory, Optional.of(x509TrustManager));
+        }
+    }
+
     /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
-    public static HttpPollingResource of(
-            Optional<SSLSocketFactory> socketFactory, String pollUrl, int numAttempts) {
-        return new HttpPollingResource(socketFactory, Collections.singletonList(pollUrl), numAttempts, 100,
+    public static HttpPollingResource create(
+            Optional<SslParameters> sslParameters, String pollUrl, int numAttempts) {
+        return new HttpPollingResource(sslParameters, Collections.singletonList(pollUrl), numAttempts, 100,
                 CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
     }
 
     /**
-     * Like {@link HttpPollingResource#of(Optional, String, int)}, but waits for all of the given URLs.
+     * Like {@link HttpPollingResource#create(Optional, String, int)}, but waits for all of the given URLs.
      */
-    public static HttpPollingResource of(
-            Optional<SSLSocketFactory> socketFactory, Collection<String> pollUrls, int numAttempts) {
-        return new HttpPollingResource(socketFactory, pollUrls, numAttempts, 100,
+    public static HttpPollingResource create(
+            Optional<SslParameters> sslParameters, Collection<String> pollUrls, int numAttempts) {
+        return new HttpPollingResource(sslParameters, pollUrls, numAttempts, 100,
                 CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
     }
 
-    public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
-            int numAttempts, long intervalMillis, int connectionTimeoutMillis, int readTimeoutMillis) {
+    /**
+     * Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds.
+     *
+     * @deprecated Use com.palantir.junit.HttpPollingResource#create(java.util.Optional, java.util.Collection, int)
+     */
+    @Deprecated
+    public static HttpPollingResource of(
+            Optional<SSLSocketFactory> sslSocketFactory, String pollUrl, int numAttempts) {
+        return new HttpPollingResource(
+                sslSocketFactory.map(SslParameters::of),
+                Collections.singletonList(pollUrl),
+                numAttempts,
+                100,
+                CONNECTION_TIMEOUT_MILLIS,
+                READ_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * Like {@link HttpPollingResource#of(Optional, String, int)}, but waits for all of the given URLs.
+     *
+     * @deprecated Use com.palantir.junit.HttpPollingResource#create(java.util.Optional, java.util.Collection, int)
+     */
+    @Deprecated
+    public static HttpPollingResource of(
+            Optional<SSLSocketFactory> sslSocketFactory, Collection<String> pollUrls, int numAttempts) {
+        return new HttpPollingResource(
+                sslSocketFactory.map(SslParameters::of),
+                pollUrls,
+                numAttempts,
+                100,
+                CONNECTION_TIMEOUT_MILLIS,
+                READ_TIMEOUT_MILLIS);
+    }
+
+    public HttpPollingResource(
+            Optional<SslParameters> sslParameters,
+            Collection<String> pollRequests,
+            int numAttempts,
+            long intervalMillis,
+            int connectionTimeoutMillis,
+            int readTimeoutMillis) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         clientBuilder.connectTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
         clientBuilder.readTimeout(readTimeoutMillis, TimeUnit.MILLISECONDS);
-        socketFactory.ifPresent(clientBuilder::sslSocketFactory);
+        sslParameters.ifPresent(ssl -> {
+            if (ssl.x509TrustManager.isPresent()) {
+                clientBuilder.sslSocketFactory(ssl.sslSocketFactory, ssl.x509TrustManager.get());
+            } else {
+                clientBuilder.sslSocketFactory(ssl.sslSocketFactory);
+            }
+        });
         this.client = clientBuilder.build();
         this.pollRequests = pollRequests.stream().map(url -> {
             try {
@@ -101,10 +165,10 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         try {
             ResourcePoller.poll(numAttempts, intervalMillis, this);
         } catch (Exception e) {
-            throw new IllegalStateException(String.format("HTTP services was not ready within %d milliseconds: %s",
+            throw new IllegalStateException(String.format(
+                    "HTTP services was not ready within %d milliseconds: %s",
                     numAttempts * intervalMillis,
                     pollRequests.stream().map(Request::url).collect(Collectors.toList())), e);
         }
     }
-
 }
