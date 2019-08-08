@@ -1,12 +1,12 @@
 apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
-    compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
-    compile "junit:junit:${junitVersion}"
-    compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile "com.squareup.okhttp3:okhttp"
+    compile "junit:junit"
+    compile "org.slf4j:slf4j-api"
 
-    testCompile "com.google.guava:guava:${guavaVersion}"
-    testCompile "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
-    testCompile "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-    testCompile "org.mockito:mockito-core:${mockitoVersion}"
+    testCompile "com.google.guava:guava"
+    testCompile "com.squareup.okhttp3:mockwebserver"
+    testCompile "org.hamcrest:hamcrest-all"
+    testCompile "org.mockito:mockito-core"
 }
