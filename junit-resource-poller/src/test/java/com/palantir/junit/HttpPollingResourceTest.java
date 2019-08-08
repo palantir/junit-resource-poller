@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLSocketFactory;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Before;
@@ -92,6 +93,30 @@ public final class HttpPollingResourceTest {
         server2.enqueue(new MockResponse().setResponseCode(200));
 
         doublePoller.before();
+        assertThat(server.getRequestCount(), is(2));
+        assertThat(server2.getRequestCount(), is(1));
+    }
+
+    @Test
+    public void junit5_sanity_test() throws IOException, InterruptedException {
+        MockWebServer server2 = new MockWebServer();
+        server2.start();
+        HttpPollingResource.Builder builder = HttpPollingResource.builder();
+        Optional.<SSLSocketFactory>empty().ifPresent(builder::sslSocketFactory);
+
+        HttpPollingExtension doublePoller = HttpPollingExtension.builder()
+                .pollUrls(ImmutableList.of(
+                        "http://localhost:" + server.getPort(),
+                        "http://localhost:" + server2.getPort()))
+                .numAttempts(2)
+                .build();
+
+        server.enqueue(new MockResponse().setResponseCode(500));
+        // server2 won't get called in the first iteration
+        server.enqueue(new MockResponse().setResponseCode(200));
+        server2.enqueue(new MockResponse().setResponseCode(200));
+
+        doublePoller.beforeAll(null);
         assertThat(server.getRequestCount(), is(2));
         assertThat(server2.getRequestCount(), is(1));
     }
