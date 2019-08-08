@@ -101,10 +101,8 @@ public final class HttpPollingResourceTest {
     public void junit5_sanity_test() throws IOException, InterruptedException {
         MockWebServer server2 = new MockWebServer();
         server2.start();
-        HttpPollingResource.Builder builder = HttpPollingResource.builder();
-        Optional.<SSLSocketFactory>empty().ifPresent(builder::sslSocketFactory);
 
-        HttpPollingExtension doublePoller = HttpPollingExtension.builder()
+        HttpPollingExtension junit5 = HttpPollingExtension.builder()
                 .pollUrls(ImmutableList.of(
                         "http://localhost:" + server.getPort(),
                         "http://localhost:" + server2.getPort()))
@@ -116,7 +114,7 @@ public final class HttpPollingResourceTest {
         server.enqueue(new MockResponse().setResponseCode(200));
         server2.enqueue(new MockResponse().setResponseCode(200));
 
-        doublePoller.beforeAll(null);
+        junit5.beforeAll(null);
         assertThat(server.getRequestCount(), is(2));
         assertThat(server2.getRequestCount(), is(1));
     }
