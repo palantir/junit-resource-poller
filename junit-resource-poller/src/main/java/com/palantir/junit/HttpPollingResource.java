@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +34,7 @@ import okhttp3.Response;
 import org.junit.rules.ExternalResource;
 
 /**
- * A JUnit resource representing a list of remote services that can be polled for availability through a URL.
+ * A JUnit4 resource representing a list of remote services that can be polled for availability through a URL.
  */
 public final class HttpPollingResource extends ExternalResource implements PollableResource {
 
@@ -45,29 +46,18 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     private final int numAttempts;
     private final long intervalMillis;
 
-    public static final class SslParameters {
-        private final SSLSocketFactory sslSocketFactory;
-        private final X509TrustManager x509TrustManager;
-
-        private SslParameters(SSLSocketFactory sslSocketFactory, X509TrustManager x509TrustManager) {
-            this.sslSocketFactory = sslSocketFactory;
-            this.x509TrustManager = x509TrustManager;
-        }
-
-        public static SslParameters of(SSLSocketFactory socketFactory, X509TrustManager x509TrustManager) {
-            return new SslParameters(socketFactory, x509TrustManager);
-        }
+    public static HttpPollingResource.Builder builder() {
+        return new Builder();
     }
 
     /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
     public static HttpPollingResource create(
             Optional<SslParameters> sslParameters, String pollUrl, int numAttempts) {
-        return new HttpPollingResource(
-                sslParameters.map(ssl -> ssl.sslSocketFactory),
-                sslParameters.map(ssl -> ssl.x509TrustManager),
-                Collections.singletonList(pollUrl),
-                numAttempts, 100,
-                CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
+        return builder()
+                .sslParameters(sslParameters)
+                .pollUrls(Collections.singletonList(pollUrl))
+                .numAttempts(numAttempts)
+                .build();
     }
 
     /**
@@ -75,13 +65,11 @@ public final class HttpPollingResource extends ExternalResource implements Polla
      */
     public static HttpPollingResource create(
             Optional<SslParameters> sslParameters, Collection<String> pollUrls, int numAttempts) {
-        return new HttpPollingResource(
-                sslParameters.map(ssl -> ssl.sslSocketFactory),
-                sslParameters.map(ssl -> ssl.x509TrustManager),
-                pollUrls,
-                numAttempts,
-                100,
-                CONNECTION_TIMEOUT_MILLIS, READ_TIMEOUT_MILLIS);
+        return builder()
+                .sslParameters(sslParameters)
+                .pollUrls(pollUrls)
+                .numAttempts(numAttempts)
+                .build();
     }
 
     /**
@@ -89,62 +77,60 @@ public final class HttpPollingResource extends ExternalResource implements Polla
      * interval.
      */
     public static HttpPollingResource create(
-            Optional<SSLSocketFactory> socketFactory,
-            Collection<String> pollRequests,
+            Optional<SSLSocketFactory> sslSocketFactory,
+            Collection<String> pollUrls,
             int numAttempts,
             long intervalMillis,
             int connectionTimeoutMillis,
             int readTimeoutMillis) {
-        return new HttpPollingResource(
-                socketFactory,
-                Optional.empty(),
-                pollRequests,
-                numAttempts,
-                intervalMillis,
-                connectionTimeoutMillis,
-                readTimeoutMillis);
+        Builder builder = builder();
+        sslSocketFactory.ifPresent(builder::sslSocketFactory);
+
+        return builder
+                .pollUrls(pollUrls)
+                .numAttempts(numAttempts)
+                .intervalMillis(intervalMillis)
+                .connectionTimeoutMillis(connectionTimeoutMillis)
+                .readTimeoutMillis(readTimeoutMillis)
+                .build();
     }
 
     /**
      * Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds.
      *
-     * @deprecated Use com.palantir.junit.HttpPollingResource#create(java.util.Optional, java.util.Collection, int)
+     * @deprecated Use {@link #builder()}
      */
     @Deprecated
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> sslSocketFactory, String pollUrl, int numAttempts) {
-        return new HttpPollingResource(
-                sslSocketFactory,
-                Optional.empty(),
-                Collections.singletonList(pollUrl),
-                numAttempts,
-                100,
-                CONNECTION_TIMEOUT_MILLIS,
-                READ_TIMEOUT_MILLIS);
+        Builder builder = builder();
+        sslSocketFactory.ifPresent(builder::sslSocketFactory);
+
+        return builder()
+                .pollUrls(Collections.singletonList(pollUrl))
+                .numAttempts(numAttempts)
+                .build();
     }
 
     /**
      * Like {@link HttpPollingResource#of(Optional, String, int)}, but waits for all of the given URLs.
      *
-     * @deprecated Use com.palantir.junit.HttpPollingResource#create(java.util.Optional, java.util.Collection, int)
+     * @deprecated Use {@link #builder()}
      */
     @Deprecated
     public static HttpPollingResource of(
             Optional<SSLSocketFactory> sslSocketFactory, Collection<String> pollUrls, int numAttempts) {
-        return new HttpPollingResource(
-                sslSocketFactory,
-                Optional.empty(),
-                pollUrls,
-                numAttempts,
-                100,
-                CONNECTION_TIMEOUT_MILLIS,
-                READ_TIMEOUT_MILLIS);
+        Builder builder = builder();
+        sslSocketFactory.ifPresent(builder::sslSocketFactory);
+
+        return builder()
+                .pollUrls(pollUrls)
+                .numAttempts(numAttempts)
+                .build();
     }
 
     /**
-     *
-     * @deprecated Use com.palantir.junit.HttpPollingResource#create(java.util.Optional, java.util.Collection, int,
-     * long, int, int)
+     * @deprecated Use {@link #builder()}
      */
     @Deprecated
     public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
@@ -216,6 +202,95 @@ public final class HttpPollingResource extends ExternalResource implements Polla
                     "HTTP services was not ready within %d milliseconds: %s",
                     numAttempts * intervalMillis,
                     pollRequests.stream().map(Request::url).collect(Collectors.toList())), e);
+        }
+    }
+
+    public static final class SslParameters {
+        private final SSLSocketFactory sslSocketFactory;
+        private final X509TrustManager x509TrustManager;
+
+        private SslParameters(SSLSocketFactory sslSocketFactory, X509TrustManager x509TrustManager) {
+            this.sslSocketFactory = sslSocketFactory;
+            this.x509TrustManager = x509TrustManager;
+        }
+
+        public static SslParameters of(SSLSocketFactory socketFactory, X509TrustManager x509TrustManager) {
+            return new SslParameters(socketFactory, x509TrustManager);
+        }
+    }
+
+    public static final class Builder {
+        private Optional<SSLSocketFactory> sslSocketFactory = Optional.empty();
+        private Optional<X509TrustManager> x509TrustManager = Optional.empty();
+        private Collection<String> pollRequests;
+        private int numAttempts;
+        private long intervalMillis = 100;
+        private int connectionTimeoutMillis = CONNECTION_TIMEOUT_MILLIS;
+        private int readTimeoutMillis = READ_TIMEOUT_MILLIS;
+
+        public Builder sslParameters(Optional<HttpPollingResource.SslParameters> value) {
+            if (value.isPresent()) {
+                sslSocketFactory(value.get().sslSocketFactory);
+                x509TrustManager(value.get().x509TrustManager);
+            }
+            return this;
+        }
+
+        public Builder sslSocketFactory(SSLSocketFactory value) {
+            this.sslSocketFactory = Optional.of(value);
+            return this;
+        }
+
+        public Builder x509TrustManager(X509TrustManager value) {
+            this.x509TrustManager = Optional.of(value);
+            return this;
+        }
+
+        public Builder pollUrls(Collection<String> value) {
+            this.pollRequests = new HashSet<>(value);
+            return this;
+        }
+
+        public Builder numAttempts(int value) {
+            this.numAttempts = value;
+            return this;
+        }
+
+        public Builder intervalMillis(long value) {
+            this.intervalMillis = value;
+            return this;
+        }
+
+        public Builder connectionTimeoutMillis(int value) {
+            this.connectionTimeoutMillis = value;
+            return this;
+        }
+
+        public Builder readTimeoutMillis(int value) {
+            this.readTimeoutMillis = value;
+            return this;
+        }
+
+        public HttpPollingResource build() {
+            return new HttpPollingResource(
+                    sslSocketFactory,
+                    x509TrustManager,
+                    pollRequests,
+                    numAttempts,
+                    intervalMillis,
+                    connectionTimeoutMillis,
+                    readTimeoutMillis);
+        }
+
+        public FailureCachingHttpPollingResource buildFailureCaching() {
+            return new FailureCachingHttpPollingResource(new HttpPollingResource(
+                    sslSocketFactory,
+                    x509TrustManager,
+                    pollRequests,
+                    numAttempts,
+                    intervalMillis,
+                    connectionTimeoutMillis,
+                    readTimeoutMillis));
         }
     }
 }
