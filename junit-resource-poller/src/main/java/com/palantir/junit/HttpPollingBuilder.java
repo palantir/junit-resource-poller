@@ -16,8 +16,8 @@
 
 package com.palantir.junit;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Optional;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
@@ -51,7 +51,7 @@ abstract class HttpPollingBuilder<T> {
     }
 
     public HttpPollingBuilder<T> pollUrls(Collection<String> value) {
-        this.pollRequests = new HashSet<>(value);
+        this.pollRequests = new ArrayList<>(value);
         return this;
     }
 
