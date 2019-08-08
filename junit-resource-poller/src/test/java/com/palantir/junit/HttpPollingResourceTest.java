@@ -95,4 +95,26 @@ public final class HttpPollingResourceTest {
         assertThat(server.getRequestCount(), is(2));
         assertThat(server2.getRequestCount(), is(1));
     }
+
+    @Test
+    public void junit5_sanity_test() throws IOException, InterruptedException {
+        MockWebServer server2 = new MockWebServer();
+        server2.start();
+
+        HttpPollingExtension junit5 = HttpPollingExtension.builder()
+                .pollUrls(ImmutableList.of(
+                        "http://localhost:" + server.getPort(),
+                        "http://localhost:" + server2.getPort()))
+                .numAttempts(2)
+                .build();
+
+        server.enqueue(new MockResponse().setResponseCode(500));
+        // server2 won't get called in the first iteration
+        server.enqueue(new MockResponse().setResponseCode(200));
+        server2.enqueue(new MockResponse().setResponseCode(200));
+
+        junit5.beforeAll(null);
+        assertThat(server.getRequestCount(), is(2));
+        assertThat(server2.getRequestCount(), is(1));
+    }
 }

@@ -1,2 +1,3 @@
+rootProject.name = 'junit-resource-poller-root'
 include 'junit-resource-poller'
 

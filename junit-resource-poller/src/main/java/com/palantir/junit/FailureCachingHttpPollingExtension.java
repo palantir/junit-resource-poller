@@ -1,5 +1,5 @@
 /*
- * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
+ * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package com.palantir.junit;
 
 import java.util.concurrent.atomic.AtomicReference;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.Extension;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * A poller that stops after the first failure, and returns that failure repeatedly in subsequent
@@ -27,16 +29,16 @@ import org.junit.rules.ExternalResource;
  * come up), but not on subsequent ones - so that running a 100 tests when one resource will never come
  * up doesn't take 100 times as long before failing.
  */
-public final class FailureCachingHttpPollingResource extends ExternalResource {
+public final class FailureCachingHttpPollingExtension implements Extension, BeforeAllCallback {
     private final HttpPollingResource poller;
     private final AtomicReference<Throwable> maybeError = new AtomicReference<>();
 
-    public FailureCachingHttpPollingResource(HttpPollingResource poller) {
+    private FailureCachingHttpPollingExtension(HttpPollingResource poller) {
         this.poller = poller;
     }
 
     @Override
-    protected void before() {
+    public void beforeAll(ExtensionContext context) {
         Throwable previousError = maybeError.get();
         if (previousError == null) {
             try {
@@ -52,14 +54,14 @@ public final class FailureCachingHttpPollingResource extends ExternalResource {
         }
     }
 
-    public static FailureCachingHttpPollingResource.Builder builder() {
-        return new FailureCachingHttpPollingResource.Builder();
+    public static FailureCachingHttpPollingExtension.Builder builder() {
+        return new FailureCachingHttpPollingExtension.Builder();
     }
 
-    public static final class Builder extends HttpPollingBuilder<FailureCachingHttpPollingResource> {
+    public static final class Builder extends HttpPollingBuilder<FailureCachingHttpPollingExtension> {
         @Override
-        public FailureCachingHttpPollingResource build() {
-            return new FailureCachingHttpPollingResource(new HttpPollingResource(
+        public FailureCachingHttpPollingExtension build() {
+            return new FailureCachingHttpPollingExtension(new HttpPollingResource(
                     sslSocketFactory,
                     x509TrustManager,
                     pollRequests,
