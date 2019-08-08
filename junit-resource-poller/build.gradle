@@ -1,7 +1,7 @@
 apply from: "${rootDir}/gradle/publish.gradle"
 
 dependencies {
-    compileOnly 'org.junit.jupiter:junit-jupiter-api:5.5.1'
+    compileOnly 'org.junit.jupiter:junit-jupiter-api'
     implementation "com.squareup.okhttp3:okhttp"
     api "junit:junit"
     implementation "org.slf4j:slf4j-api"
