@@ -51,4 +51,22 @@ public final class FailureCachingHttpPollingResource extends ExternalResource {
             throw new IllegalStateException("Failing due to previous error", previousError);
         }
     }
+
+    public static FailureCachingHttpPollingResource.Builder builder() {
+        return new FailureCachingHttpPollingResource.Builder();
+    }
+
+    public static final class Builder extends HttpPollingBuilder<FailureCachingHttpPollingResource> {
+        @Override
+        public FailureCachingHttpPollingResource build() {
+            return new FailureCachingHttpPollingResource(new HttpPollingResource(
+                    sslSocketFactory,
+                    x509TrustManager,
+                    pollRequests,
+                    numAttempts,
+                    intervalMillis,
+                    connectionTimeoutMillis,
+                    readTimeoutMillis));
+        }
+    }
 }

@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.rules.ExternalResource;
 
 /**
  * A poller that stops after the first failure, and returns that failure repeatedly in subsequent
@@ -34,7 +33,7 @@ public final class FailureCachingHttpPollingExtension implements Extension, Befo
     private final HttpPollingResource poller;
     private final AtomicReference<Throwable> maybeError = new AtomicReference<>();
 
-    public FailureCachingHttpPollingExtension(HttpPollingResource poller) {
+    private FailureCachingHttpPollingExtension(HttpPollingResource poller) {
         this.poller = poller;
     }
 
@@ -52,6 +51,24 @@ public final class FailureCachingHttpPollingExtension implements Extension, Befo
             }
         } else {
             throw new IllegalStateException("Failing due to previous error", previousError);
+        }
+    }
+
+    public static FailureCachingHttpPollingExtension.Builder builder() {
+        return new FailureCachingHttpPollingExtension.Builder();
+    }
+
+    public static final class Builder extends HttpPollingBuilder<FailureCachingHttpPollingExtension> {
+        @Override
+        public FailureCachingHttpPollingExtension build() {
+            return new FailureCachingHttpPollingExtension(new HttpPollingResource(
+                    sslSocketFactory,
+                    x509TrustManager,
+                    pollRequests,
+                    numAttempts,
+                    intervalMillis,
+                    connectionTimeoutMillis,
+                    readTimeoutMillis));
         }
     }
 }

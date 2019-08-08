@@ -23,12 +23,30 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 public final class HttpPollingExtension implements Extension, BeforeAllCallback {
     private final HttpPollingResource delegate;
 
-    HttpPollingExtension(HttpPollingResource delegate) {
+    private HttpPollingExtension(HttpPollingResource delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public void beforeAll(ExtensionContext context) {
         delegate.before();
+    }
+
+    public static HttpPollingExtension.Builder builder() {
+        return new HttpPollingExtension.Builder();
+    }
+
+    public static final class Builder extends HttpPollingBuilder<HttpPollingExtension> {
+        @Override
+        public HttpPollingExtension build() {
+            return new HttpPollingExtension(new HttpPollingResource(
+                    sslSocketFactory,
+                    x509TrustManager,
+                    pollRequests,
+                    numAttempts,
+                    intervalMillis,
+                    connectionTimeoutMillis,
+                    readTimeoutMillis));
+        }
     }
 }

@@ -145,7 +145,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
                 readTimeoutMillis);
     }
 
-    private HttpPollingResource(
+    HttpPollingResource(
             Optional<SSLSocketFactory> sslSocketFactory,
             Optional<X509TrustManager> x509TrustManager,
             Collection<String> pollRequests,
@@ -217,60 +217,18 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         public static SslParameters of(SSLSocketFactory socketFactory, X509TrustManager x509TrustManager) {
             return new SslParameters(socketFactory, x509TrustManager);
         }
+
+        public SSLSocketFactory sslSocketFactory() {
+            return sslSocketFactory;
+        }
+
+        public X509TrustManager x509TrustManager() {
+            return x509TrustManager;
+        }
     }
 
-    public static final class Builder {
-        private Optional<SSLSocketFactory> sslSocketFactory = Optional.empty();
-        private Optional<X509TrustManager> x509TrustManager = Optional.empty();
-        private Collection<String> pollRequests;
-        private int numAttempts;
-        private long intervalMillis = 100;
-        private int connectionTimeoutMillis = CONNECTION_TIMEOUT_MILLIS;
-        private int readTimeoutMillis = READ_TIMEOUT_MILLIS;
-
-        public Builder sslParameters(Optional<HttpPollingResource.SslParameters> value) {
-            if (value.isPresent()) {
-                sslSocketFactory(value.get().sslSocketFactory);
-                x509TrustManager(value.get().x509TrustManager);
-            }
-            return this;
-        }
-
-        public Builder sslSocketFactory(SSLSocketFactory value) {
-            this.sslSocketFactory = Optional.of(value);
-            return this;
-        }
-
-        public Builder x509TrustManager(X509TrustManager value) {
-            this.x509TrustManager = Optional.of(value);
-            return this;
-        }
-
-        public Builder pollUrls(Collection<String> value) {
-            this.pollRequests = new HashSet<>(value);
-            return this;
-        }
-
-        public Builder numAttempts(int value) {
-            this.numAttempts = value;
-            return this;
-        }
-
-        public Builder intervalMillis(long value) {
-            this.intervalMillis = value;
-            return this;
-        }
-
-        public Builder connectionTimeoutMillis(int value) {
-            this.connectionTimeoutMillis = value;
-            return this;
-        }
-
-        public Builder readTimeoutMillis(int value) {
-            this.readTimeoutMillis = value;
-            return this;
-        }
-
+    public static class Builder extends HttpPollingBuilder<HttpPollingResource> {
+        @Override
         public HttpPollingResource build() {
             return new HttpPollingResource(
                     sslSocketFactory,
@@ -280,17 +238,6 @@ public final class HttpPollingResource extends ExternalResource implements Polla
                     intervalMillis,
                     connectionTimeoutMillis,
                     readTimeoutMillis);
-        }
-
-        public FailureCachingHttpPollingResource buildFailureCaching() {
-            return new FailureCachingHttpPollingResource(new HttpPollingResource(
-                    sslSocketFactory,
-                    x509TrustManager,
-                    pollRequests,
-                    numAttempts,
-                    intervalMillis,
-                    connectionTimeoutMillis,
-                    readTimeoutMillis));
         }
     }
 }
