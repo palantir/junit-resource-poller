@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import javax.net.ssl.SSLSocketFactory;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.Before;
