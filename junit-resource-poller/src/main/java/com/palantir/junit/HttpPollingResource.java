@@ -21,7 +21,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -130,6 +129,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     }
 
     /**
+     * Deprecated.
      * @deprecated Use {@link #builder()}
      */
     @Deprecated
@@ -227,7 +227,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         }
     }
 
-    public static class Builder extends HttpPollingBuilder<HttpPollingResource> {
+    public static final class Builder extends HttpPollingBuilder<HttpPollingResource> {
         @Override
         public HttpPollingResource build() {
             return new HttpPollingResource(

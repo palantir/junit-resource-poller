@@ -22,7 +22,6 @@ import java.util.Optional;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
-@SuppressWarnings("VisibilityModifier") // intentionally want all these builder fields to be mutated
 abstract class HttpPollingBuilder<T> {
     protected Optional<SSLSocketFactory> sslSocketFactory = Optional.empty();
     protected Optional<X509TrustManager> x509TrustManager = Optional.empty();
@@ -75,6 +74,6 @@ abstract class HttpPollingBuilder<T> {
         return this;
     }
 
-    /** Real Builders should override this to produce the right type of JUnit4/5 builder */
+    /** Real Builders should override this to produce the right type of JUnit4/5 builder. */
     public abstract T build();
 }

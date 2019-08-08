@@ -298,7 +298,6 @@
         <module name="VariableDeclarationUsageDistance"> <!-- Java Style Guide: Declared when needed, initialized as soon as possible -->
             <property name="ignoreVariablePattern" value="stopwatch"/>
         </module>
-        <module name="VisibilityModifier"/> <!-- Java Coding Guidelines: Minimize mutability -->
         <module name="WhitespaceAfter"/> <!-- Java Style Guide: Horizontal whitespace -->
         <module name="WhitespaceAround"> <!-- Java Style Guide: Horizontal whitespace -->
             <property name="allowEmptyConstructors" value="true"/>
