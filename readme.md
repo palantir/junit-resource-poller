@@ -12,31 +12,37 @@ Usage
 
 Simple Gradle setup:
 
-    buildscript {
-        repositories {
-            jcenter()
-        }
+```gradle
+buildscript {
+    repositories {
+        jcenter()
     }
+}
 
-    dependencies {
-        compile 'com.palantir.junit:junit-resource-poller:<version>'
-    }
+dependencies {
+    compile 'com.palantir.junit:junit-resource-poller:<version>'
+}
+```
 
 In a Java JUnit test:
 
-    @ClassRule  // Tries reaching the given services 100 times with a 100ms delay (plus connection timeout)
-    public static final HttpPollingResource SERVICE_POLLER = HttpPollingResource.of(
-            Optional.absent(),  // no SSL required
-            ImmutableList.of("http://my.host/my/service", "http://another.service"),
-            100);
+```java
+@ClassRule  // Tries reaching the given services 100 times with a 100ms delay (plus connection timeout)
+public static final HttpPollingResource SERVICE_POLLER = HttpPollingResource.of(
+        Optional.absent(),  // no SSL required
+        ImmutableList.of("http://my.host/my/service", "http://another.service"),
+        100);
+```
 
 With JUnit5:
 
-    @RegisterExtension
-    public static final HttpPollingExtension POLLER = HttpPollingExtension.builder()
-            .pollUrls(ImmutableList.of("http://my.host/my/service", "http://another.service"))
-            .numAttempts(2)
-            .build();
+```java
+@RegisterExtension
+public static final HttpPollingExtension POLLER = HttpPollingExtension.builder()
+        .pollUrls(ImmutableList.of("http://my.host/my/service", "http://another.service"))
+        .numAttempts(2)
+        .build();
+```
 
 License
 -------
