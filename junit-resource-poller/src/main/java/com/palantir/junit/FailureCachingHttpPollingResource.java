@@ -56,8 +56,7 @@ public final class FailureCachingHttpPollingResource extends ExternalResource {
         return new FailureCachingHttpPollingResource.Builder();
     }
 
-    public static final class Builder extends HttpPollingBuilder<FailureCachingHttpPollingResource> {
-        @Override
+    public static final class Builder extends HttpPollingBuilder<Builder> {
         public FailureCachingHttpPollingResource build() {
             return new FailureCachingHttpPollingResource(new HttpPollingResource(
                     sslSocketFactory,

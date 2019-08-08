@@ -36,8 +36,7 @@ public final class HttpPollingExtension implements Extension, BeforeAllCallback 
         return new HttpPollingExtension.Builder();
     }
 
-    public static final class Builder extends HttpPollingBuilder<HttpPollingExtension> {
-        @Override
+    public static final class Builder extends HttpPollingBuilder<Builder> {
         public HttpPollingExtension build() {
             return new HttpPollingExtension(new HttpPollingResource(
                     sslSocketFactory,

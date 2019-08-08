@@ -23,7 +23,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
 @SuppressWarnings("VisibilityModifier")
-abstract class HttpPollingBuilder<T> {
+abstract class HttpPollingBuilder<B> {
     protected Optional<SSLSocketFactory> sslSocketFactory = Optional.empty();
     protected Optional<X509TrustManager> x509TrustManager = Optional.empty();
     protected Collection<String> pollRequests;
@@ -32,49 +32,46 @@ abstract class HttpPollingBuilder<T> {
     protected int connectionTimeoutMillis = 500;
     protected int readTimeoutMillis = 500;
 
-    public HttpPollingBuilder<T> sslParameters(Optional<HttpPollingResource.SslParameters> value) {
+    public B sslParameters(Optional<HttpPollingResource.SslParameters> value) {
         if (value.isPresent()) {
             sslSocketFactory(value.get().sslSocketFactory());
             x509TrustManager(value.get().x509TrustManager());
         }
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> sslSocketFactory(SSLSocketFactory value) {
+    public B sslSocketFactory(SSLSocketFactory value) {
         this.sslSocketFactory = Optional.of(value);
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> x509TrustManager(X509TrustManager value) {
+    public B x509TrustManager(X509TrustManager value) {
         this.x509TrustManager = Optional.of(value);
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> pollUrls(Collection<String> value) {
+    public B pollUrls(Collection<String> value) {
         this.pollRequests = new ArrayList<>(value);
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> numAttempts(int value) {
+    public B numAttempts(int value) {
         this.numAttempts = value;
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> intervalMillis(long value) {
+    public B intervalMillis(long value) {
         this.intervalMillis = value;
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> connectionTimeoutMillis(int value) {
+    public B connectionTimeoutMillis(int value) {
         this.connectionTimeoutMillis = value;
-        return this;
+        return (B) this;
     }
 
-    public HttpPollingBuilder<T> readTimeoutMillis(int value) {
+    public B readTimeoutMillis(int value) {
         this.readTimeoutMillis = value;
-        return this;
+        return (B) this;
     }
-
-    /** Real Builders should override this to produce the right type of JUnit4/5 builder. */
-    public abstract T build();
 }
