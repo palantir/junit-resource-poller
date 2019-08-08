@@ -58,8 +58,7 @@ public final class FailureCachingHttpPollingExtension implements Extension, Befo
         return new FailureCachingHttpPollingExtension.Builder();
     }
 
-    public static final class Builder extends HttpPollingBuilder<FailureCachingHttpPollingExtension> {
-        @Override
+    public static final class Builder extends HttpPollingBuilder<Builder> {
         public FailureCachingHttpPollingExtension build() {
             return new FailureCachingHttpPollingExtension(new HttpPollingResource(
                     sslSocketFactory,

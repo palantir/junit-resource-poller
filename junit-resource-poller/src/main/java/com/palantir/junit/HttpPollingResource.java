@@ -224,8 +224,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         }
     }
 
-    public static final class Builder extends HttpPollingBuilder<HttpPollingResource> {
-        @Override
+    public static final class Builder extends HttpPollingBuilder<Builder> {
         public HttpPollingResource build() {
             return new HttpPollingResource(
                     sslSocketFactory,
