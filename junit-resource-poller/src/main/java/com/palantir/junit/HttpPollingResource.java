@@ -37,9 +37,6 @@ import org.junit.rules.ExternalResource;
  */
 public final class HttpPollingResource extends ExternalResource implements PollableResource {
 
-    private static final int CONNECTION_TIMEOUT_MILLIS = 500;
-    private static final int READ_TIMEOUT_MILLIS = 500;
-
     private final OkHttpClient client;
     private final List<Request> pollRequests;
     private final int numAttempts;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Palantir Technologies, Inc. All rights reserved.
+ * (c) Copyright 2019 Palantir Technologies Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Optional;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
+@SuppressWarnings("VisibilityModifier")
 abstract class HttpPollingBuilder<T> {
     protected Optional<SSLSocketFactory> sslSocketFactory = Optional.empty();
     protected Optional<X509TrustManager> x509TrustManager = Optional.empty();
