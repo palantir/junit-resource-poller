@@ -4,6 +4,7 @@ dependencies {
     compile "com.squareup.okhttp3:okhttp:${okhttpVersion}"
     compile "junit:junit:${junitVersion}"
     compile "org.slf4j:slf4j-api:${slf4jVersion}"
+    compile 'org.junit.jupiter:junit-jupiter-api:5.5.1'
 
     testCompile "com.google.guava:guava:${guavaVersion}"
     testCompile "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
