@@ -1,3 +1,7 @@
+<p align="right">
+<a href="https://autorelease.general.dmz.palantir.tech/palantir/junit-resource-poller"><img src="https://img.shields.io/badge/Perform%20an-Autorelease-success.svg" alt="Autorelease"></a>
+</p>
+
 [![Build Status](https://travis-ci.org/palantir/junit-resource-poller.svg?branch=develop)](https://travis-ci.org/palantir/junit-resource-poller.svg?branch=develop)
 [ ![Download](https://api.bintray.com/packages/palantir/releases/junit-resource-poller/images/download.svg) ](https://bintray.com/palantir/releases/junit-resource-poller/_latestVersion)
 
