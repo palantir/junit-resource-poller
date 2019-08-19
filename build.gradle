@@ -6,14 +6,14 @@ buildscript {
 
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'com.netflix.nebula:nebula-publishing-plugin:12.0.0'
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:13.2.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:1.10.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.11.0'
     }
 }
 
 plugins {
-    id 'com.palantir.consistent-versions' version '1.9.2'
+    id 'com.palantir.consistent-versions' version '1.11.1'
 }
 
 apply plugin: 'com.palantir.baseline'
