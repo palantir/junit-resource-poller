@@ -16,11 +16,12 @@
 
 package com.palantir.junit;
 
+import java.util.Optional;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-public final class HttpPollingExtension implements Extension, BeforeAllCallback {
+public final class HttpPollingExtension implements Extension, BeforeAllCallback, PollableResource {
     private final HttpPollingResource delegate;
 
     private HttpPollingExtension(HttpPollingResource delegate) {
@@ -34,6 +35,11 @@ public final class HttpPollingExtension implements Extension, BeforeAllCallback 
 
     public static HttpPollingExtension.Builder builder() {
         return new HttpPollingExtension.Builder();
+    }
+
+    @Override
+    public Optional<Exception> isReady() {
+        return delegate.isReady();
     }
 
     public static final class Builder extends HttpPollingBuilder<Builder> {
