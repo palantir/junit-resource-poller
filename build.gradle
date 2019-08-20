@@ -13,7 +13,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.palantir.consistent-versions' version '1.11.1'
+    id 'com.palantir.consistent-versions' version '1.11.2'
 }
 
 apply plugin: 'com.palantir.baseline'
