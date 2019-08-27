@@ -16,6 +16,7 @@
 
 package com.palantir.junit;
 
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -41,6 +42,6 @@ public final class ResourcePoller {
             }
         }
 
-        throw lastException.orElseGet(() -> new IllegalStateException("Internal error (numAttempts == 0?)"));
+        throw lastException.orElseGet(() -> new SafeIllegalStateException("Internal error (numAttempts == 0?)"));
     }
 }

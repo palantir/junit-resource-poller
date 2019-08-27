@@ -16,6 +16,7 @@
 
 package com.palantir.junit;
 
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.rules.ExternalResource;
 
@@ -48,7 +49,7 @@ public final class FailureCachingHttpPollingResource extends ExternalResource {
                 throw e;
             }
         } else {
-            throw new IllegalStateException("Failing due to previous error", previousError);
+            throw new SafeIllegalStateException("Failing due to previous error", previousError);
         }
     }
 

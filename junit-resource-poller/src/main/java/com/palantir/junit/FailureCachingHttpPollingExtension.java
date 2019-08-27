@@ -16,6 +16,7 @@
 
 package com.palantir.junit;
 
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.Extension;
@@ -50,7 +51,7 @@ public final class FailureCachingHttpPollingExtension implements Extension, Befo
                 throw e;
             }
         } else {
-            throw new IllegalStateException("Failing due to previous error", previousError);
+            throw new SafeIllegalStateException("Failing due to previous error", previousError);
         }
     }
 
