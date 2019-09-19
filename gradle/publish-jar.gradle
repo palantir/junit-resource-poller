@@ -7,6 +7,7 @@ apply plugin: 'nebula.maven-nebula-publish'
 apply plugin: 'nebula.maven-base-publish'
 apply plugin: 'nebula.maven-developer'
 apply plugin: 'nebula.maven-manifest'
+apply plugin: 'nebula.info-scm'
 apply plugin: 'nebula.maven-scm'
 
 apply plugin: 'nebula.javadoc-jar'
@@ -19,8 +20,8 @@ jar {
 }
 
 bintray {
-    user = System.env.BINTRAY_USER
-    key = System.env.BINTRAY_KEY
+    user = System.env.BINTRAY_USERNAME
+    key = System.env.BINTRAY_PASSWORD
     publish = true
     pkg {
         repo = 'releases'
@@ -46,4 +47,9 @@ publishing {
             }
         }
     }
+}
+
+// Turning off module metadata so that all consumers just use regular POMs
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
 }
