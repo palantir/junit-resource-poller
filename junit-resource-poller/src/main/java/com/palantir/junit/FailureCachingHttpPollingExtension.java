@@ -38,7 +38,7 @@ public final class FailureCachingHttpPollingExtension implements Extension, Befo
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) {
+    public void beforeAll(ExtensionContext _context) {
         Throwable previousError = maybeError.get();
         if (previousError == null) {
             try {

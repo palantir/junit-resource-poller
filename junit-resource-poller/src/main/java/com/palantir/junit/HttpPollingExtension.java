@@ -29,7 +29,7 @@ public final class HttpPollingExtension implements Extension, BeforeAllCallback,
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) {
+    public void beforeAll(ExtensionContext _context) {
         delegate.before();
     }
 
