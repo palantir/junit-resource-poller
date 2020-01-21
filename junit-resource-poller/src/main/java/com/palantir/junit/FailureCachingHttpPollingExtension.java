@@ -22,12 +22,11 @@ import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
- * A poller that stops after the first failure, and returns that failure repeatedly in subsequent
- * invocations.
+ * A poller that stops after the first failure, and returns that failure repeatedly in subsequent invocations.
  *
- * This is useful if you want to tolerate long waits on the first invocation (to allow resources to
- * come up), but not on subsequent ones - so that running a 100 tests when one resource will never come
- * up doesn't take 100 times as long before failing.
+ * <p>This is useful if you want to tolerate long waits on the first invocation (to allow resources to come up), but not
+ * on subsequent ones - so that running a 100 tests when one resource will never come up doesn't take 100 times as long
+ * before failing.
  */
 public final class FailureCachingHttpPollingExtension implements Extension, BeforeAllCallback {
     private final HttpPollingResource poller;

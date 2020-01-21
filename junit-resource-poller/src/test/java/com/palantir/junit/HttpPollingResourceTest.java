@@ -48,7 +48,6 @@ public final class HttpPollingResourceTest {
         poller = HttpPollingResource.of(Optional.empty(), "http://localhost:" + server.getPort(), 5);
     }
 
-
     @Test
     public void test_failsEventually() throws IOException {
         server.shutdown();
@@ -73,7 +72,9 @@ public final class HttpPollingResourceTest {
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
             poller.before();
-        } catch (IllegalStateException e) { /* expected */ }
+        } catch (IllegalStateException e) {
+            /* expected */
+        }
 
         assertThat(server.getRequestCount(), is(5));
         assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), lessThan(6 * 500L + 500));
@@ -83,8 +84,10 @@ public final class HttpPollingResourceTest {
     public void test_pollsAreServices() throws IOException, InterruptedException {
         MockWebServer server2 = new MockWebServer();
         server2.start();
-        HttpPollingResource doublePoller = HttpPollingResource.of(Optional.empty(),
-                ImmutableList.of("http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()), 2);
+        HttpPollingResource doublePoller = HttpPollingResource.of(
+                Optional.empty(),
+                ImmutableList.of("http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()),
+                2);
 
         server.enqueue(new MockResponse().setResponseCode(500));
         // server2 won't get called in the first iteration
@@ -103,8 +106,7 @@ public final class HttpPollingResourceTest {
 
         HttpPollingExtension junit5 = HttpPollingExtension.builder()
                 .pollUrls(ImmutableList.of(
-                        "http://localhost:" + server.getPort(),
-                        "http://localhost:" + server2.getPort()))
+                        "http://localhost:" + server.getPort(), "http://localhost:" + server2.getPort()))
                 .numAttempts(2)
                 .build();
 

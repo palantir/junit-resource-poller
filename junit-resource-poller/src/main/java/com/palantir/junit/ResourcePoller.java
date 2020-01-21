@@ -35,7 +35,9 @@ public final class ResourcePoller {
 
         Optional<Exception> lastException = Optional.empty();
         for (int i = 0; i < numAttempts; ++i) {
-            lastException = scheduler.schedule(target::isReady, intervalMillis, TimeUnit.MILLISECONDS).get();
+            lastException = scheduler
+                    .schedule(target::isReady, intervalMillis, TimeUnit.MILLISECONDS)
+                    .get();
             if (!lastException.isPresent()) {
                 return;
             }
