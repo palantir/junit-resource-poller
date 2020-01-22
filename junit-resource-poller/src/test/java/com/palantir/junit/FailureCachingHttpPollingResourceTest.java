@@ -40,6 +40,7 @@ import org.mockito.stubbing.Answer;
 public final class FailureCachingHttpPollingResourceTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
+
     @Mock
     private HttpPollingResource delegate;
 
@@ -115,20 +116,27 @@ public final class FailureCachingHttpPollingResourceTest {
         /* first invocation fails*/
         Mockito.doAnswer(failingAnswer)
                 .doAnswer(successfulAnswer)
-                .when(delegate).before();
+                .when(delegate)
+                .before();
 
         // run two parallel befores
         new Thread(() -> {
-            try {
-                resource.before();
-            } catch (IllegalStateException e) { /* expected */ }
-        }).start();
+                    try {
+                        resource.before();
+                    } catch (IllegalStateException e) {
+                        /* expected */
+                    }
+                })
+                .start();
 
         new Thread(() -> {
-            try {
-                resource.before();
-            } catch (IllegalStateException e) { /* expected */ }
-        }).start();
+                    try {
+                        resource.before();
+                    } catch (IllegalStateException e) {
+                        /* expected */
+                    }
+                })
+                .start();
 
         // wait up to 100 ms until both invocations entered the delegate
         delegateEntries.await(100, TimeUnit.MILLISECONDS);

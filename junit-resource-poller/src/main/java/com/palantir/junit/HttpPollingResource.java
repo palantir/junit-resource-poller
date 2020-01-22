@@ -32,9 +32,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.rules.ExternalResource;
 
-/**
- * A JUnit4 resource representing a list of remote services that can be polled for availability through a URL.
- */
+/** A JUnit4 resource representing a list of remote services that can be polled for availability through a URL. */
 public final class HttpPollingResource extends ExternalResource implements PollableResource {
 
     private final OkHttpClient client;
@@ -47,8 +45,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
     }
 
     /** Waits at most {@code timeout} until a GET request for {@code pollUrl} succeeds, polls every 100 milliseconds. */
-    public static HttpPollingResource create(
-            Optional<SslParameters> sslParameters, String pollUrl, int numAttempts) {
+    public static HttpPollingResource create(Optional<SslParameters> sslParameters, String pollUrl, int numAttempts) {
         return builder()
                 .sslParameters(sslParameters)
                 .pollUrls(Collections.singletonList(pollUrl))
@@ -56,9 +53,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
                 .build();
     }
 
-    /**
-     * Like {@link HttpPollingResource#create(Optional, String, int)}, but waits for all of the given URLs.
-     */
+    /** Like {@link HttpPollingResource#create(Optional, String, int)}, but waits for all of the given URLs. */
     public static HttpPollingResource create(
             Optional<SslParameters> sslParameters, Collection<String> pollUrls, int numAttempts) {
         return builder()
@@ -82,8 +77,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         Builder builder = builder();
         sslSocketFactory.ifPresent(builder::sslSocketFactory);
 
-        return builder
-                .pollUrls(pollUrls)
+        return builder.pollUrls(pollUrls)
                 .numAttempts(numAttempts)
                 .intervalMillis(intervalMillis)
                 .connectionTimeoutMillis(connectionTimeoutMillis)
@@ -97,8 +91,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
      * @deprecated Use {@link #builder()}
      */
     @Deprecated
-    public static HttpPollingResource of(
-            Optional<SSLSocketFactory> sslSocketFactory, String pollUrl, int numAttempts) {
+    public static HttpPollingResource of(Optional<SSLSocketFactory> sslSocketFactory, String pollUrl, int numAttempts) {
         Builder builder = builder();
         sslSocketFactory.ifPresent(builder::sslSocketFactory);
 
@@ -119,19 +112,22 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         Builder builder = builder();
         sslSocketFactory.ifPresent(builder::sslSocketFactory);
 
-        return builder()
-                .pollUrls(pollUrls)
-                .numAttempts(numAttempts)
-                .build();
+        return builder().pollUrls(pollUrls).numAttempts(numAttempts).build();
     }
 
     /**
      * Deprecated.
+     *
      * @deprecated Use {@link #builder()}
      */
     @Deprecated
-    public HttpPollingResource(Optional<SSLSocketFactory> socketFactory, Collection<String> pollRequests,
-            int numAttempts, long intervalMillis, int connectionTimeoutMillis, int readTimeoutMillis) {
+    public HttpPollingResource(
+            Optional<SSLSocketFactory> socketFactory,
+            Collection<String> pollRequests,
+            int numAttempts,
+            long intervalMillis,
+            int connectionTimeoutMillis,
+            int readTimeoutMillis) {
         this(
                 socketFactory,
                 Optional.empty(),
@@ -161,13 +157,15 @@ public final class HttpPollingResource extends ExternalResource implements Polla
             }
         }
         this.client = clientBuilder.build();
-        this.pollRequests = pollRequests.stream().map(url -> {
-            try {
-                return new Request.Builder().url(new URL(url)).build();
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }).collect(Collectors.toList());
+        this.pollRequests = pollRequests.stream()
+                .map(url -> {
+                    try {
+                        return new Request.Builder().url(new URL(url)).build();
+                    } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
         this.numAttempts = numAttempts;
         this.intervalMillis = intervalMillis;
     }
@@ -183,8 +181,7 @@ public final class HttpPollingResource extends ExternalResource implements Polla
                             "Received non-success error code %s from resource %s", response.code(), request.url())));
                 }
             } catch (IOException e) {
-                return Optional.of(new RuntimeException(
-                        "HTTP connection error for resource " + request.url(), e));
+                return Optional.of(new RuntimeException("HTTP connection error for resource " + request.url(), e));
             }
         }
         return Optional.empty();
@@ -195,10 +192,12 @@ public final class HttpPollingResource extends ExternalResource implements Polla
         try {
             ResourcePoller.poll(numAttempts, intervalMillis, this);
         } catch (Exception e) {
-            throw new IllegalStateException(String.format(
-                    "HTTP services was not ready within %d milliseconds: %s",
-                    numAttempts * intervalMillis,
-                    pollRequests.stream().map(Request::url).collect(Collectors.toList())), e);
+            throw new IllegalStateException(
+                    String.format(
+                            "HTTP services was not ready within %d milliseconds: %s",
+                            numAttempts * intervalMillis,
+                            pollRequests.stream().map(Request::url).collect(Collectors.toList())),
+                    e);
         }
     }
 
