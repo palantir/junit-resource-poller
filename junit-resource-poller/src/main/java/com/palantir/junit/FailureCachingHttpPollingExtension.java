@@ -59,14 +59,15 @@ public final class FailureCachingHttpPollingExtension implements Extension, Befo
 
     public static final class Builder extends HttpPollingBuilder<Builder> {
         public FailureCachingHttpPollingExtension build() {
-            return new FailureCachingHttpPollingExtension(new HttpPollingResource(
-                    sslSocketFactory,
-                    x509TrustManager,
-                    pollRequests,
-                    numAttempts,
-                    intervalMillis,
-                    connectionTimeoutMillis,
-                    readTimeoutMillis));
+            return new FailureCachingHttpPollingExtension(
+                    new HttpPollingResource(
+                            sslSocketFactory,
+                            x509TrustManager,
+                            pollRequests,
+                            numAttempts,
+                            intervalMillis,
+                            connectionTimeoutMillis,
+                            readTimeoutMillis));
         }
     }
 }

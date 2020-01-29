@@ -44,14 +44,15 @@ public final class HttpPollingExtension implements Extension, BeforeAllCallback,
 
     public static final class Builder extends HttpPollingBuilder<Builder> {
         public HttpPollingExtension build() {
-            return new HttpPollingExtension(new HttpPollingResource(
-                    sslSocketFactory,
-                    x509TrustManager,
-                    pollRequests,
-                    numAttempts,
-                    intervalMillis,
-                    connectionTimeoutMillis,
-                    readTimeoutMillis));
+            return new HttpPollingExtension(
+                    new HttpPollingResource(
+                            sslSocketFactory,
+                            x509TrustManager,
+                            pollRequests,
+                            numAttempts,
+                            intervalMillis,
+                            connectionTimeoutMillis,
+                            readTimeoutMillis));
         }
     }
 }
