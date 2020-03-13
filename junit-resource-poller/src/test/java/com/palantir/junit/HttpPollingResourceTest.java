@@ -16,10 +16,9 @@
 
 package com.palantir.junit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertThat;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -28,6 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.assertj.core.api.HamcrestCondition;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,8 +63,8 @@ public final class HttpPollingResourceTest {
         server.enqueue(new MockResponse().setResponseCode(500));
         server.enqueue(new MockResponse().setResponseCode(200));
         poller.before();
-        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), greaterThan(200L));
-        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), lessThan(500L));
+        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS)).is(new HamcrestCondition<>(greaterThan(200L)));
+        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS)).is(new HamcrestCondition<>(lessThan(500L)));
     }
 
     @Test
@@ -76,8 +76,8 @@ public final class HttpPollingResourceTest {
             /* expected */
         }
 
-        assertThat(server.getRequestCount(), is(5));
-        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS), lessThan(6 * 500L + 500));
+        assertThat(server.getRequestCount()).isEqualTo(5);
+        assertThat(stopwatch.elapsed(TimeUnit.MILLISECONDS)).is(new HamcrestCondition<>(lessThan(6 * 500L + 500)));
     }
 
     @Test
@@ -95,8 +95,8 @@ public final class HttpPollingResourceTest {
         server2.enqueue(new MockResponse().setResponseCode(200));
 
         doublePoller.before();
-        assertThat(server.getRequestCount(), is(2));
-        assertThat(server2.getRequestCount(), is(1));
+        assertThat(server.getRequestCount()).isEqualTo(2);
+        assertThat(server2.getRequestCount()).isEqualTo(1);
     }
 
     @Test
@@ -116,7 +116,7 @@ public final class HttpPollingResourceTest {
         server2.enqueue(new MockResponse().setResponseCode(200));
 
         junit5.beforeAll(null);
-        assertThat(server.getRequestCount(), is(2));
-        assertThat(server2.getRequestCount(), is(1));
+        assertThat(server.getRequestCount()).isEqualTo(2);
+        assertThat(server2.getRequestCount()).isEqualTo(1);
     }
 }
