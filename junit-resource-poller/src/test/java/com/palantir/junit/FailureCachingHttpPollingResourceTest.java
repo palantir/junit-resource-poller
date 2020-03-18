@@ -16,10 +16,8 @@
 
 package com.palantir.junit;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -74,18 +72,18 @@ public final class FailureCachingHttpPollingResourceTest {
 
         try {
             resource.before();
-            fail();
+            fail("fail");
         } catch (IllegalStateException e) {
-            assertThat(e, is(equalTo(delegateException)));
+            assertThat(e).isEqualTo(delegateException);
         }
 
         // but resource should remember the failure
         try {
             resource.before();
-            fail();
+            fail("fail");
         } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), is(equalTo("Failing due to previous error")));
-            assertThat(e.getCause(), is(equalTo(delegateException)));
+            assertThat(e.getMessage()).isEqualTo("Failing due to previous error");
+            assertThat(e.getCause()).isEqualTo(delegateException);
         }
 
         // make sure we only called the delegate once
