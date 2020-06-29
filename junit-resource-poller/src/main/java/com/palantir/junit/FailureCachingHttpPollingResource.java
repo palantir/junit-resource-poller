@@ -57,15 +57,14 @@ public final class FailureCachingHttpPollingResource extends ExternalResource {
 
     public static final class Builder extends HttpPollingBuilder<Builder> {
         public FailureCachingHttpPollingResource build() {
-            return new FailureCachingHttpPollingResource(
-                    new HttpPollingResource(
-                            sslSocketFactory,
-                            x509TrustManager,
-                            pollRequests,
-                            numAttempts,
-                            intervalMillis,
-                            connectionTimeoutMillis,
-                            readTimeoutMillis));
+            return new FailureCachingHttpPollingResource(new HttpPollingResource(
+                    sslSocketFactory,
+                    x509TrustManager,
+                    pollRequests,
+                    numAttempts,
+                    intervalMillis,
+                    connectionTimeoutMillis,
+                    readTimeoutMillis));
         }
     }
 }
